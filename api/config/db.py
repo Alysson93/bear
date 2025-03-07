@@ -10,5 +10,5 @@ session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 async def get_db():
     global session
-    async with session() as session:
-        yield session
+    async with session() as s:
+        yield s
