@@ -4,5 +4,7 @@ asyncpg==0.30.0
 blue==0.9.1
 fastapi[standard]==0.115.11
 isort==6.0.1
+pwdlib[argon2]==0.2.1
 pydantic-settings==2.8.1
+pyjwt==2.10.1
 taskipy==1.14.1

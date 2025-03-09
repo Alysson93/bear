@@ -4,6 +4,7 @@ from uuid import UUID
 from sqlalchemy import select
 
 from config.db import AsyncSession
+from config.security import get_password_hash
 from models.DTOs import UserRequest
 from models.entities import User
 
@@ -15,7 +16,7 @@ class UserRepository:
     async def create(self, data: UserRequest):
         user = User(
             username=data.username,
-            password=data.password,
+            password=get_password_hash(data.password),
             name=data.name,
             last_name=data.last_name,
             email=data.email,
@@ -24,7 +25,7 @@ class UserRepository:
         )
         self.db.add(user)
         await self.db.commit()
-        user = await self.db.refresh(user)
+        await self.db.refresh(user)
         return user
 
     async def read(self):
@@ -43,7 +44,7 @@ class UserRepository:
         if exists and exists.id != id:
             return 400
         user.username = data.username
-        user.password = data.password
+        user.password = get_password_hash(data.password)
         user.name = data.name
         user.last_name = data.last_name
         user.email = data.email
