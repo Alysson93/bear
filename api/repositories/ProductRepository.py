@@ -31,10 +31,12 @@ class ProductRepository:
         )
         return product.scalar()
 
-    async def update(self, id: UUID, data: ProductRequest):
+    async def update(self, id: UUID, data: ProductRequest, user_id: UUID):
         product = await self.read_by(id)
         if not product:
             return 404
+        if product.user_id != user_id:
+            return 403
         product.name = data.name
         product.description = data.description
         product.updated_at = datetime.now()
@@ -42,10 +44,12 @@ class ProductRepository:
         await self.db.refresh(product)
         return product
 
-    async def delete(self, id: UUID):
+    async def delete(self, id: UUID, user_id: UUID):
         product = await self.read_by(id)
         if not product:
-            return False
+            return 404
+        if product.user_id != user_id:
+            return 403
         await self.db.delete(product)
         await self.db.commit()
         return True

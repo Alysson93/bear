@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from config.security import get_current_user
 from models.DTOs import ProductRequest, ProductResponse
-from models.entities import Product, User
+from models.entities import User
 from repositories import ProductRepository, get_product_repository
 
 t_repository = Annotated[ProductRepository, Depends(get_product_repository)]
@@ -49,33 +49,28 @@ async def update_product(
     id: UUID,
     data: ProductRequest,
 ):
-    if current_user.id != id:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
-        )
-    Product = await repo.update(id, data)
-    if Product == 400:
-        raise HTTPException(
-            status_code=HTTPStatus.BAD_REQUEST,
-            detail='Product already exists.',
-        )
-    elif Product == 404:
+    product = await repo.update(id, data, current_user.id)
+    if product == 404:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Product not found.'
         )
-    return Product
+    if product == 403:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
+        )
+    return product
 
 
 @router.delete('/{id:uuid}', status_code=HTTPStatus.NO_CONTENT)
 async def delete_product(
     repo: t_repository, current_user: t_current_user, id: UUID
 ):
-    if current_user.id != id:
-        raise HTTPException(
-            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
-        )
-    status = await repo.delete(id)
-    if not status:
+    status = await repo.delete(id, current_user.id)
+    if status == 404:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail='Product not found.'
+        )
+    if status == 403:
+        raise HTTPException(
+            status_code=HTTPStatus.FORBIDDEN, detail='Not enough permissions.'
         )
