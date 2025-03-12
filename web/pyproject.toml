@@ -1,0 +1,3 @@
+[tool.taskipy.tasks]
+lint = "blue . && isort ."
+run = "python main.py"
